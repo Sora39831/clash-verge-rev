@@ -49,12 +49,6 @@ jobs:
             gh issue create \
               --repo "$GITHUB_REPOSITORY" \
               --title "上游同步冲突 $(date -u +%F)" \
-              --body "自动合并失败，请本地处理：
-\`\`\`bash
-git fetch origin
-git switch custom/login
-git merge origin/dev
-# 解决冲突后提交并推送
-\`\`\`" || true
+              --body "自动合并 custom/login 失败：请在本地执行 git fetch origin && git switch custom/login && git merge origin/dev，解决冲突后推送。" || true
             exit 1
           fi
