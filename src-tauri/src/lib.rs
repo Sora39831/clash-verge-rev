@@ -208,6 +208,10 @@ mod app_init {
             cmd::get_unlock_items,
             cmd::check_media_unlock,
             cmd::check_media_unlock_item,
+            cmd::auth_login,
+            cmd::auth_get_session,
+            cmd::auth_save_imported_uid,
+            cmd::auth_logout,
         ]
     }
 }

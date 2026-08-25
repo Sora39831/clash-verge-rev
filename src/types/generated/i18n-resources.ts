@@ -3,6 +3,28 @@
 
 export interface TranslationResources {
   translation: {
+    auth: {
+      login: {
+        actions: {
+          submit: string
+          submitting: string
+        }
+        errors: {
+          missingFields: string
+        }
+        feedback: {
+          importFailed: string
+          importSuccess: string
+          logoutSuccess: string
+        }
+        fields: {
+          email: string
+          password: string
+          server: string
+        }
+        subtitle: string
+      }
+    }
     connections: {
       components: {
         actions: {
