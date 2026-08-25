@@ -1,0 +1,60 @@
+name: Sync upstream
+
+# CloudXP fork: keep dev mirrored to upstream clash-verge-rev/dev and
+# auto-merge upstream changes into the custom/login branch.
+# NOTE: scheduled workflows only run from the repository's default branch,
+# so this file intentionally lives on dev (the default branch).
+
+on:
+  schedule:
+    - cron: "0 20 * * *" # daily at UTC 20:00 (CST 04:00)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "cloudxp-sync-bot"
+          git config user.email "41849+Sora39831@users.noreply.github.com"
+
+      - name: Fast-forward dev from upstream
+        run: |
+          git remote add upstream https://github.com/clash-verge-rev/clash-verge-rev.git
+          git fetch upstream --tags
+          git merge --ff-only upstream/dev
+          git push origin dev
+
+      - name: Merge dev into custom/login
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin custom/login
+          git switch -c tmp-merge origin/custom/login
+          if git merge dev -m "chore(sync): merge upstream dev ($(date -u +%F))"; then
+            git push origin HEAD:custom/login
+          else
+            git merge --abort || true
+            gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "上游同步冲突 $(date -u +%F)" \
+              --body "自动合并失败，请本地处理：
+\`\`\`bash
+git fetch origin
+git switch custom/login
+git merge origin/dev
+# 解决冲突后提交并推送
+\`\`\`" || true
+            exit 1
+          fi
