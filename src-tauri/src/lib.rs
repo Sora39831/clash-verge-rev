@@ -212,6 +212,7 @@ mod app_init {
             cmd::auth_get_session,
             cmd::auth_save_imported_uid,
             cmd::auth_logout,
+            cmd::auth_probe,
         ]
     }
 }

@@ -34,3 +34,8 @@ export async function authSaveImportedUid(uid: string): Promise<void> {
 export async function authLogout(): Promise<void> {
   return invoke<void>('auth_logout')
 }
+
+/** HTTP status of the account subscription endpoint (404=token reset, 403=rejected). */
+export async function authProbe(): Promise<number> {
+  return invoke<number>('auth_probe')
+}

@@ -1,9 +1,12 @@
 import { Box, CircularProgress } from '@mui/material'
 import { useEffect, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router'
 
 import {
   authGetSession,
+  authLogout,
+  authProbe,
   authSaveImportedUid,
   type AuthSession,
 } from '@/services/auth'
@@ -13,13 +16,20 @@ import {
   patchProfilesConfig,
   updateProfile,
 } from '@/services/cmds'
+import { showNotice } from '@/services/notice-service'
 
 /**
  * Route guard: without a stored CloudXP session every route redirects to
  * /login. Once a session exists, the account subscription is ensured and
  * refreshed once per app start (fire-and-forget) so profiles stay current.
+ *
+ * Failure branches (design §4.4):
+ * - probe 404 → the sub token was reset on the panel → clear session, re-login
+ * - probe 403 → account pending/disabled/expired → notify with reason
+ * - network unreachable → stay in the app, notice only (offline-first)
  */
 export function AuthGuard({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const location = useLocation()
   const [session, setSession] = useState<AuthSession | null | undefined>(
     undefined,
@@ -75,8 +85,28 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       if (uid) {
         try {
           await updateProfile(uid)
-        } catch (error) {
-          console.warn('[auth] startup subscription update failed:', error)
+        } catch (updateError) {
+          console.warn(
+            '[auth] startup subscription update failed:',
+            updateError,
+          )
+          // Distinguish credential loss from transient failures.
+          try {
+            const status = await authProbe()
+            if (status === 404) {
+              // Token was reset on the panel: force re-login.
+              await authLogout()
+              showNotice.error(t('auth.login.feedback.tokenReset'))
+              setSession(null)
+              return
+            }
+            if (status === 403) {
+              showNotice.error(t('auth.login.feedback.subscriptionRejected'))
+              return
+            }
+          } catch (probeError) {
+            console.warn('[auth] probe failed (offline?):', probeError)
+          }
         }
       }
     }
@@ -84,7 +114,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     void ensureSubscription().catch((error) => {
       console.warn('[auth] ensure subscription failed:', error)
     })
-  }, [session])
+  }, [session, t])
 
   if (session === undefined) {
     return (

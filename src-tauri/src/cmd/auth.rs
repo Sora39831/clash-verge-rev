@@ -211,3 +211,25 @@ pub async fn auth_logout() -> CmdResult {
     logging!(info, Type::Cmd, "[auth] logout: local session cleared");
     Ok(())
 }
+
+/// Probe the account subscription endpoint and return its HTTP status code,
+/// so the frontend can distinguish a reset token (404) from a disabled or
+/// expired account (403).
+#[tauri::command]
+pub async fn auth_probe() -> CmdResult<u16> {
+    const CODE: &str = "AUTH_PROBE_FAILED";
+    let session = read_session()
+        .map_err(|e| coded_error(CODE, e))?
+        .ok_or_else(|| coded_error("AUTH_NO_SESSION", "尚未登录"))?;
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .map_err(|e| coded_error(CODE, format_args!("HTTP client init failed: {e}")))?;
+    let response = client
+        .get(&session.clash_url)
+        .send()
+        .await
+        .map_err(|e| coded_error(CODE, format_args!("网络请求失败: {e}")))?;
+    Ok(response.status().as_u16())
+}

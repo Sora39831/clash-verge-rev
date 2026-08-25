@@ -4,6 +4,12 @@
 export interface TranslationResources {
   translation: {
     auth: {
+      account: {
+        confirmLogout: string
+        email: string
+        logout: string
+        title: string
+      }
       login: {
         actions: {
           submit: string
@@ -16,6 +22,8 @@ export interface TranslationResources {
           importFailed: string
           importSuccess: string
           logoutSuccess: string
+          subscriptionRejected: string
+          tokenReset: string
         }
         fields: {
           email: string
