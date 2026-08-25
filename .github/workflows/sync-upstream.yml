@@ -2,8 +2,9 @@ name: Sync upstream
 
 # CloudXP fork: keep dev mirrored to upstream clash-verge-rev/dev and
 # auto-merge upstream changes into the custom/login branch.
-# NOTE: scheduled workflows only run from the repository's default branch,
-# so this file intentionally lives on dev (the default branch).
+# NOTE: this file lives on `ops` — the fork's default branch, where GitHub
+# runs scheduled workflows. dev stays a pristine fast-forward mirror;
+# all custom code lives on custom/*.
 
 on:
   schedule:
