@@ -1,6 +1,6 @@
 [package]
 name = "clash-verge-cloudxp"
-version = "2.5.4-cxp.4"
+version = "2.5.4-cxp.5"
 description = "clash verge cloudxp"
 authors = ["zzzgydi", "Tunglies", "wonfen", "MystiPanda"]
 license = "GPL-3.0-only"

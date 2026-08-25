@@ -8,19 +8,14 @@ export interface AuthSession {
   importedUid?: string | null
 }
 
-/** Default CloudXP API endpoint (overridable on the login form). */
-export const DEFAULT_AUTH_BASE_URL = 'https://api.qiwuagi.com'
+/** CloudXP API endpoint, fixed at build time (mirrors the Rust constant). */
+export const AUTH_BASE_URL = 'https://api.qiwuagi.com'
 
 export async function authLogin(
-  baseUrl: string,
   email: string,
   password: string,
 ): Promise<AuthSession> {
-  return invoke<AuthSession>('auth_login', {
-    baseUrl,
-    email,
-    password,
-  })
+  return invoke<AuthSession>('auth_login', { email, password })
 }
 
 export async function authGetSession(): Promise<AuthSession | null> {

@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router'
 
 import iconDark from '@/assets/image/icon_dark.svg?react'
 import iconLight from '@/assets/image/icon_light.svg?react'
-import { DEFAULT_AUTH_BASE_URL, authLogin } from '@/services/auth'
+import { authLogin } from '@/services/auth'
 import { getProfiles, importProfile } from '@/services/cmds'
 import { showNotice } from '@/services/notice-service'
 import { useThemeMode } from '@/services/states'
@@ -36,7 +36,6 @@ const LoginPage = () => {
   const mode = useThemeMode()
   const isDark = mode !== 'light'
 
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_AUTH_BASE_URL)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -54,7 +53,7 @@ const LoginPage = () => {
 
     setSubmitting(true)
     try {
-      const session = await authLogin(baseUrl.trim(), email.trim(), password)
+      const session = await authLogin(email.trim(), password)
 
       // Import the account subscription right away (idempotent).
       try {
@@ -118,14 +117,6 @@ const LoginPage = () => {
             onSubmit={handleSubmit}
             autoComplete="on"
           >
-            <TextField
-              label={t('auth.login.fields.server')}
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              size="small"
-              fullWidth
-              spellCheck={false}
-            />
             <TextField
               label={t('auth.login.fields.email')}
               type="email"

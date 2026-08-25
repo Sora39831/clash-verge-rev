@@ -69,20 +69,14 @@ fn extract_session_cookie(cookie_header: &str) -> Option<String> {
     None
 }
 
+/// CloudXP API endpoint, fixed at build time (no user-facing override).
+pub const AUTH_BASE_URL: &str = "https://api.qiwuagi.com";
+
 /// Login to the CloudXP backend and persist the session (email + sub token).
 #[tauri::command]
-pub async fn auth_login(
-    base_url: String,
-    email: String,
-    password: String,
-) -> CmdResult<AuthSession> {
+pub async fn auth_login(email: String, password: String) -> CmdResult<AuthSession> {
     const CODE: &str = "AUTH_LOGIN_FAILED";
     logging!(info, Type::Cmd, "[auth] login begin: {email}");
-
-    let base_url = base_url.trim_end_matches('/').to_owned();
-    if !base_url.starts_with("https://") && !base_url.starts_with("http://") {
-        return Err(coded_error(CODE, "服务器地址必须以 http(s):// 开头"));
-    }
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(20))
@@ -93,7 +87,7 @@ pub async fn auth_login(
     let login_body =
         serde_json::json!({ "email": email.clone(), "password": password });
     let response = client
-        .post(format!("{base_url}/api/auth/login"))
+        .post(format!("{AUTH_BASE_URL}/api/auth/login"))
         .json(&login_body)
         .send()
         .await
@@ -130,7 +124,7 @@ pub async fn auth_login(
 
     // Step 2: fetch this account's mihomo subscription URL
     let sub_response = client
-        .get(format!("{base_url}/api/me/subscription"))
+        .get(format!("{AUTH_BASE_URL}/api/me/subscription"))
         .header(reqwest::header::COOKIE, format!("session={session_cookie}"))
         .send()
         .await
@@ -159,7 +153,7 @@ pub async fn auth_login(
         .filter(|p| p.email == email && p.sub_token == info.sub_token)
         .and_then(|p| p.imported_uid);
     let session = AuthSession {
-        base_url,
+        base_url: AUTH_BASE_URL.to_owned(),
         email: email.clone(),
         sub_token: info.sub_token,
         clash_url: info.clash_url,
