@@ -32,8 +32,8 @@ jobs:
       - name: Fast-forward dev from upstream
         run: |
           git remote add upstream https://github.com/clash-verge-rev/clash-verge-rev.git
-          git fetch upstream --tags
-          git merge --ff-only upstream/dev
+          git fetch upstream dev
+          git merge --ff-only FETCH_HEAD
           git push origin dev
 
       - name: Merge dev into custom/login
