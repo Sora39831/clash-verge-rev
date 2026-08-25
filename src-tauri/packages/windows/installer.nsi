@@ -550,20 +550,13 @@ FunctionEnd
 
 
 !macro CheckAllVergeProcesses
-  ; Check if clash-verge-service.exe is running
-  !if "${INSTALLMODE}" == "currentUser"
-    nsis_tauri_utils::FindProcessCurrentUser "clash-verge-service.exe"
-  !else
-    nsis_tauri_utils::FindProcess "clash-verge-service.exe"
-  !endif
+  ; Stop OUR service gracefully by its own name; never touch other apps' services
+  SimpleSC::ExistsService "cloudxp_cloudxp_clash_verge_service"
   Pop $R0
-  ${If} $R0 = 0
-    DetailPrint "Kill clash-verge-service.exe..."
-    !if "${INSTALLMODE}" == "currentUser"
-      nsis_tauri_utils::KillProcessCurrentUser "clash-verge-service.exe"
-    !else
-      nsis_tauri_utils::KillProcess "clash-verge-service.exe"
-    !endif
+  ${If} $R0 == 0
+    DetailPrint "Stop cloudxp_cloudxp_clash_verge_service..."
+    SimpleSC::StopService "cloudxp_cloudxp_clash_verge_service" 1 30
+    Pop $R0
   ${EndIf}
 
   ; Check if verge-mihomo-alpha.exe is running
@@ -633,20 +626,20 @@ FunctionEnd
 
 !macro StartVergeService
   ; Check if the service exists
-  SimpleSC::ExistsService "clash_verge_service"
+  SimpleSC::ExistsService "cloudxp_clash_verge_service"
   Pop $0  ; 0: service exists; other: service not exists
   ; Service exists
   ${If} $0 == 0
     Push $0
     ; Check if the service is running
-    SimpleSC::ServiceIsRunning "clash_verge_service"
+    SimpleSC::ServiceIsRunning "cloudxp_clash_verge_service"
     Pop $0 ; returns an errorcode (<>0) otherwise success (0)
     Pop $1 ; returns 1 (service is running) - returns 0 (service is not running)
     ${If} $0 == 0
       Push $0
       ${If} $1 == 0
         DetailPrint "Restart ${PRODUCTNAME} Service..."
-        SimpleSC::StartService "clash_verge_service" "" 30
+        SimpleSC::StartService "cloudxp_clash_verge_service" "" 30
       ${EndIf}
     ${ElseIf} $0 != 0
       Push $0
@@ -659,24 +652,24 @@ FunctionEnd
 
 !macro RemoveVergeService
   ; Check if the service exists
-  SimpleSC::ExistsService "clash_verge_service"
+  SimpleSC::ExistsService "cloudxp_clash_verge_service"
   Pop $0  ; 0: service exists; other: service not exists
   ; Service exists
   ${If} $0 == 0
     Push $0
     ; Check if the service is running
-    SimpleSC::ServiceIsRunning "clash_verge_service"
+    SimpleSC::ServiceIsRunning "cloudxp_clash_verge_service"
     Pop $0 ; returns an errorcode (<>0) otherwise success (0)
     Pop $1 ; returns 1 (service is running) - returns 0 (service is not running)
     ${If} $0 == 0
       Push $0
       ${If} $1 == 1
         DetailPrint "Stop ${PRODUCTNAME} Service..."
-        SimpleSC::StopService "clash_verge_service" 1 30
+        SimpleSC::StopService "cloudxp_clash_verge_service" 1 30
         Pop $0 ; returns an errorcode (<>0) otherwise success (0)
         ${If} $0 == 0
           DetailPrint "Removing ${PRODUCTNAME} Service..."
-          SimpleSC::RemoveService "clash_verge_service"
+          SimpleSC::RemoveService "cloudxp_clash_verge_service"
         ${ElseIf} $0 != 0
           Push $0
           SimpleSC::GetErrorMessage
@@ -685,7 +678,7 @@ FunctionEnd
         ${EndIf}
       ${ElseIf} $1 == 0
         DetailPrint "Removing ${PRODUCTNAME} Service..."
-        SimpleSC::RemoveService "clash_verge_service"
+        SimpleSC::RemoveService "cloudxp_clash_verge_service"
       ${EndIf}
     ${ElseIf} $0 != 0
       Push $0
@@ -915,28 +908,28 @@ Section Install
 
   ; Remove stale window-state files
   DetailPrint "Removing window-state.json / .window-state.json"
-  Delete "$APPDATA\io.github.clash-verge-rev.clash-verge-rev\window-state.json"
-  Delete "$APPDATA\io.github.clash-verge-rev.clash-verge-rev\.window-state.json"
+  Delete "$APPDATA\io.github.cloudxp.clash-verge-cloudxp\window-state.json"
+  Delete "$APPDATA\io.github.cloudxp.clash-verge-cloudxp\.window-state.json"
 
   ; Clean legacy auto-launch registry entries
   StrCpy $R1 "Software\Microsoft\Windows\CurrentVersion\Run"
 
   SetRegView 64
-  ReadRegStr $R2 HKCU "$R1" "Clash Verge"
+  ReadRegStr $R2 HKCU "$R1" "${PRODUCTNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKCU "$R1" "Clash Verge"
+    DeleteRegValue HKCU "$R1" "${PRODUCTNAME}"
   ${EndIf}
-  ReadRegStr $R2 HKLM "$R1" "Clash Verge"
+  ReadRegStr $R2 HKLM "$R1" "${PRODUCTNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKLM "$R1" "Clash Verge"
+    DeleteRegValue HKLM "$R1" "${PRODUCTNAME}"
   ${EndIf}
-  ReadRegStr $R2 HKCU "$R1" "clash-verge"
+  ReadRegStr $R2 HKCU "$R1" "${MAINBINARYNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKCU "$R1" "clash-verge"
+    DeleteRegValue HKCU "$R1" "${MAINBINARYNAME}"
   ${EndIf}
-  ReadRegStr $R2 HKLM "$R1" "clash-verge"
+  ReadRegStr $R2 HKLM "$R1" "${MAINBINARYNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKLM "$R1" "clash-verge"
+    DeleteRegValue HKLM "$R1" "${MAINBINARYNAME}"
   ${EndIf}
 
   ; Remove legacy executables
@@ -1089,28 +1082,28 @@ Section Uninstall
   ; Remove cached window state files
   DetailPrint "Removing window-state.json / .window-state.json"
   SetShellVarContext current
-  Delete "$APPDATA\io.github.clash-verge-rev.clash-verge-rev\window-state.json"
-  Delete "$APPDATA\io.github.clash-verge-rev.clash-verge-rev\.window-state.json"
+  Delete "$APPDATA\io.github.cloudxp.clash-verge-cloudxp\window-state.json"
+  Delete "$APPDATA\io.github.cloudxp.clash-verge-cloudxp\.window-state.json"
 
   ; Clean legacy auto-launch registry entries
   StrCpy $R1 "Software\Microsoft\Windows\CurrentVersion\Run"
 
   SetRegView 64
-  ReadRegStr $R2 HKCU "$R1" "Clash Verge"
+  ReadRegStr $R2 HKCU "$R1" "${PRODUCTNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKCU "$R1" "Clash Verge"
+    DeleteRegValue HKCU "$R1" "${PRODUCTNAME}"
   ${EndIf}
-  ReadRegStr $R2 HKLM "$R1" "Clash Verge"
+  ReadRegStr $R2 HKLM "$R1" "${PRODUCTNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKLM "$R1" "Clash Verge"
+    DeleteRegValue HKLM "$R1" "${PRODUCTNAME}"
   ${EndIf}
-  ReadRegStr $R2 HKCU "$R1" "clash-verge"
+  ReadRegStr $R2 HKCU "$R1" "${MAINBINARYNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKCU "$R1" "clash-verge"
+    DeleteRegValue HKCU "$R1" "${MAINBINARYNAME}"
   ${EndIf}
-  ReadRegStr $R2 HKLM "$R1" "clash-verge"
+  ReadRegStr $R2 HKLM "$R1" "${MAINBINARYNAME}"
   ${If} $R2 != ""
-    DeleteRegValue HKLM "$R1" "clash-verge"
+    DeleteRegValue HKLM "$R1" "${MAINBINARYNAME}"
   ${EndIf}
 
   ; Remove legacy executables

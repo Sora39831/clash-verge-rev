@@ -1,11 +1,11 @@
 [package]
-name = "clash-verge"
-version = "2.5.4"
-description = "clash verge"
+name = "clash-verge-cloudxp"
+version = "2.5.4-cxp.1"
+description = "clash verge cloudxp"
 authors = ["zzzgydi", "Tunglies", "wonfen", "MystiPanda"]
 license = "GPL-3.0-only"
 repository = "https://github.com/clash-verge-rev/clash-verge-rev.git"
-default-run = "clash-verge"
+default-run = "clash-verge-cloudxp"
 build = "build.rs"
 edition = "2024"
 rust-version = "1.95"
@@ -25,7 +25,7 @@ clippy = ["tauri/test"]
 tracing = []
 
 [package.metadata.bundle]
-identifier = "io.github.clash-verge-rev.clash-verge-rev"
+identifier = "io.github.cloudxp.clash-verge-cloudxp"
 
 [build-dependencies]
 tauri-build = { version = "2.6.3", features = [] }
