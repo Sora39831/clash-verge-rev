@@ -1101,8 +1101,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
-name = "clash-verge"
-version = "2.5.4"
+name = "clash-verge-cloudxp"
+version = "2.5.4-cxp.1"
 dependencies = [
  "aes-gcm",
  "anyhow",
@@ -1257,8 +1257,8 @@ dependencies = [
 
 [[package]]
 name = "clash_verge_service_ipc"
-version = "2.6.5"
-source = "git+https://github.com/clash-verge-rev/clash-verge-service-ipc.git?tag=v2.6.5#5c72df93adad81d015d522424d124ff25dbe4c2e"
+version = "2.6.5-cxp.1"
+source = "git+https://github.com/Sora39831/clash-verge-service-ipc.git?tag=v2.6.5-cxp.1#91cb01fca60465790bab637e2917005c44b1e941"
 dependencies = [
  "anyhow",
  "compact_str",

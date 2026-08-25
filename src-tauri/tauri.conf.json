@@ -28,6 +28,7 @@
     "removeUnusedCommands": true
   },
   "productName": "Clash Verge Rev(CloudXP)",
+  "mainBinaryName": "clash-verge-cloudxp",
   "identifier": "io.github.cloudxp.clash-verge-cloudxp",
   "plugins": {
     "updater": {
