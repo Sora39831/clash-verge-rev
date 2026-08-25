@@ -582,6 +582,16 @@ async function resolveServiceBundle() {
     }
   })
 
+  // CloudXP: reuse already-bundled service binaries unless forced or incomplete,
+  // so local builds work before the forked release archive becomes available.
+  if (
+    !FORCE &&
+    files.every(({ targetPath }) => fs.existsSync(targetPath))
+  ) {
+    log_success('service bundle cached: all service binaries present')
+    return
+  }
+
   const cargoManifest = await fsp.readFile(
     path.join(cwd, 'src-tauri', 'Cargo.toml'),
     'utf8',
