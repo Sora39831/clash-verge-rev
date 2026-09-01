@@ -19,9 +19,10 @@ concurrency:
 jobs:
   check_commit:
     name: Check Commit Needs Build
-    uses: clash-verge-rev/clash-verge-rev/.github/workflows/check-commit-needs-build.yml@dev
+    uses: ./.github/workflows/check-commit-needs-build.yml
     with:
       tag_name: autobuild
+      ref: custom/login
       force_build: ${{ github.event_name == 'workflow_dispatch' }}
 
   update_tag:
@@ -34,6 +35,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          ref: custom/login
 
       - name: Fetch UPDATE logs
         id: fetch_update_logs
@@ -61,7 +64,7 @@ jobs:
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
           VERSION=$(jq -r .version package.json)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/clash-verge-rev/clash-verge-rev/releases/download/autobuild" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/autobuild" >> $GITHUB_ENV
         shell: bash
 
       - run: |
@@ -147,6 +150,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
+        with:
+          ref: custom/login
 
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@master
@@ -250,6 +255,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
+        with:
+          ref: custom/login
 
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@master
@@ -400,6 +407,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
+        with:
+          ref: custom/login
 
       - name: Add Rust Target
         run: rustup target add ${{ matrix.target }}
@@ -514,6 +523,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          ref: custom/login
 
       - name: Fetch UPDATE logs
         id: fetch_update_logs
@@ -541,7 +552,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install jq
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/clash-verge-rev/clash-verge-rev/releases/download/autobuild" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/autobuild" >> $GITHUB_ENV
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
 
       - name: Generate release.txt

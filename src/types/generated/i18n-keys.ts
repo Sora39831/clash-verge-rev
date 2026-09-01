@@ -3,7 +3,6 @@
 
 export const translationKeys = [
   'auth.login.subtitle',
-  'auth.login.fields.server',
   'auth.login.fields.email',
   'auth.login.fields.password',
   'auth.login.actions.submit',

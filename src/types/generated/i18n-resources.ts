@@ -28,7 +28,6 @@ export interface TranslationResources {
         fields: {
           email: string
           password: string
-          server: string
         }
         subtitle: string
       }

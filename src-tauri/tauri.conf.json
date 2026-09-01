@@ -32,7 +32,7 @@
   "identifier": "io.github.cloudxp.clash-verge-cloudxp",
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlGMkYxMzAxMjVFQjkwQzEKUldUQmtPc2xBUk12bnpsNm53aDE3MHhpRHZSVzJUQ0VZRXEzY0ZXL0hzM2ZFd1l6QVBlUXYxcFgK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM5OEQzRDg5MzY5OEUzOTcKUldTWDQ1ZzJpVDJOT2VKLzJhVGIrWi9nN3dlUGswMlRmaVY3dUNpOE1TM0k0RFVCamZYZ2JyNmkK",
       "endpoints": [
         "https://github.com/Sora39831/clash-verge-rev/releases/download/updater/update.json"
       ],
