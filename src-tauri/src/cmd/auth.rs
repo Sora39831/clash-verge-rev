@@ -84,8 +84,7 @@ pub async fn auth_login(email: String, password: String) -> CmdResult<AuthSessio
         .map_err(|e| coded_error(CODE, format_args!("HTTP client init failed: {e}")))?;
 
     // Step 1: password login → session cookie
-    let login_body =
-        serde_json::json!({ "email": email.clone(), "password": password });
+    let login_body = serde_json::json!({ "email": email.clone(), "password": password });
     let response = client
         .post(format!("{AUTH_BASE_URL}/api/auth/login"))
         .json(&login_body)
@@ -114,12 +113,7 @@ pub async fn auth_login(email: String, password: String) -> CmdResult<AuthSessio
         .headers()
         .get_all(reqwest::header::SET_COOKIE)
         .iter()
-        .find_map(|value| {
-            value
-                .to_str()
-                .ok()
-                .and_then(extract_session_cookie)
-        })
+        .find_map(|value| value.to_str().ok().and_then(extract_session_cookie))
         .ok_or_else(|| coded_error(CODE, "服务器未返回会话凭证"))?;
 
     // Step 2: fetch this account's mihomo subscription URL
@@ -167,10 +161,14 @@ pub async fn auth_login(email: String, password: String) -> CmdResult<AuthSessio
         help::mask_url(&session.sub_token),
     );
 
-    write_session(&session)
-        .map_err(|e| coded_error(CODE, format_args!("会话写入失败: {e}")))?;
+    write_session(&session).map_err(|e| coded_error(CODE, format_args!("会话写入失败: {e}")))?;
 
-    logging!(info, Type::Cmd, "[auth] session saved ({})", mask_token(&session.sub_token));
+    logging!(
+        info,
+        Type::Cmd,
+        "[auth] session saved ({})",
+        mask_token(&session.sub_token)
+    );
     Ok(session)
 }
 
@@ -199,8 +197,7 @@ pub async fn auth_save_imported_uid(uid: String) -> CmdResult {
 pub async fn auth_logout() -> CmdResult {
     let path = auth_path().map_err(|e| coded_error("AUTH_LOGOUT_FAILED", e))?;
     if path.exists() {
-        std::fs::remove_file(&path)
-            .map_err(|e| coded_error("AUTH_LOGOUT_FAILED", e))?;
+        std::fs::remove_file(&path).map_err(|e| coded_error("AUTH_LOGOUT_FAILED", e))?;
     }
     logging!(info, Type::Cmd, "[auth] logout: local session cleared");
     Ok(())
