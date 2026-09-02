@@ -1,13 +1,17 @@
 name: Sync upstream
 
 # CloudXP fork: keep dev mirrored to upstream clash-verge-rev/dev and
-# auto-merge upstream changes into the custom/login branch.
+# auto-merge upstream changes into the custom/login branch — but only when
+# upstream publishes a NEW RELEASE (non-prerelease tag). The check is
+# idempotent: if custom/login already contains the latest upstream release
+# commit, the run exits early without pushing anything.
 # NOTE: scheduled workflows only run from the repository's default branch,
-# so this file intentionally lives on dev (the default branch).
+# so this file lives on ops (the default branch) and on custom/login.
 
 on:
   schedule:
-    - cron: "0 20 * * *" # daily at UTC 20:00 (CST 04:00)
+    # every 6 hours; the check itself is cheap (<30s when nothing to do)
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -29,26 +33,50 @@ jobs:
           git config user.name "cloudxp-sync-bot"
           git config user.email "41849+Sora39831@users.noreply.github.com"
 
-      - name: Fast-forward dev from upstream
+      - name: Check for new upstream release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git remote add upstream https://github.com/clash-verge-rev/clash-verge-rev.git
+          git fetch origin custom/login
+
+          # latest non-prerelease release on upstream
+          LATEST_TAG=$(gh api repos/clash-verge-rev/clash-verge-rev/releases/latest --jq -r '.tag_name')
+          echo "Latest upstream release: $LATEST_TAG"
+          echo "LATEST_TAG=$LATEST_TAG" >> "$GITHUB_ENV"
+
+          # fetch just that tag (no tag-clobber risk: this fork has no v* tags)
+          git fetch upstream tag "$LATEST_TAG" --no-tags
+
+          if git merge-base --is-ancestor "$LATEST_TAG" origin/custom/login; then
+            echo "✅ custom/login already contains $LATEST_TAG — nothing to do"
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "🚀 New upstream release $LATEST_TAG — syncing"
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fast-forward dev from upstream
+        if: steps.check.outputs.updated == 'true'
+        run: |
           git fetch upstream dev
           git merge --ff-only FETCH_HEAD
           git push origin dev
 
       - name: Merge dev into custom/login
+        if: steps.check.outputs.updated == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch origin custom/login
           git switch -c tmp-merge origin/custom/login
-          if git merge dev -m "chore(sync): merge upstream dev ($(date -u +%F))"; then
+          if git merge dev -m "chore(sync): merge upstream release $LATEST_TAG"; then
             git push origin HEAD:custom/login
           else
             git merge --abort || true
             gh issue create \
               --repo "$GITHUB_REPOSITORY" \
-              --title "上游同步冲突 $(date -u +%F)" \
+              --title "上游同步冲突 $LATEST_TAG" \
               --body "自动合并 custom/login 失败：请在本地执行 git fetch origin && git switch custom/login && git merge origin/dev，解决冲突后推送。" || true
             exit 1
           fi
