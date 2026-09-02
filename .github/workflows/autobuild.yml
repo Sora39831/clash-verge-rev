@@ -349,6 +349,7 @@ jobs:
   notify-telegram:
     name: Notify Telegram
     runs-on: ubuntu-latest
+    if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
     needs:
       [
         update_tag,
