@@ -42,7 +42,7 @@ jobs:
           git fetch origin custom/login
 
           # latest non-prerelease release on upstream
-          LATEST_TAG=$(gh api repos/clash-verge-rev/clash-verge-rev/releases/latest --jq -r '.tag_name')
+          LATEST_TAG=$(gh api repos/clash-verge-rev/clash-verge-rev/releases/latest --jq '.tag_name')
           echo "Latest upstream release: $LATEST_TAG"
           echo "LATEST_TAG=$LATEST_TAG" >> "$GITHUB_ENV"
 
