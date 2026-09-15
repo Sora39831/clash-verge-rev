@@ -3,8 +3,8 @@ name: Auto Build
 on:
   workflow_dispatch:
   schedule:
-    # UTC+8 12:00, 18:00 -> UTC 4:00, 10:00
-    - cron: '0 4,10 * * *'
+    # Weekly, Monday 12:00 UTC+8 -> Sunday 04:00 UTC
+    - cron: '0 4 * * 1'
 permissions: write-all
 env:
   TAG_NAME: autobuild
@@ -161,7 +161,10 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/heads/dev' }}
+          # CloudXP fork: builds run on custom/login (and ops), never on dev,
+          # so the old `save-if: ref == refs/heads/dev` meant the cache was
+          # never written and every build recompiled all dependencies.
+          save-if: ${{ github.ref == 'refs/heads/custom/login' || github.ref == 'refs/heads/ops' }}
           prefix-key: 'v1-rust'
           key: 'rust-shared-stable-${{ matrix.os }}-${{ matrix.target }}'
           workspaces: |
@@ -186,14 +189,6 @@ jobs:
           node-version: '24.19.0'
           cache: 'pnpm'
 
-      - name: Pnpm Cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.pnpm-store
-          key: 'pnpm-shared-stable-${{ matrix.os }}-${{ matrix.target }}'
-          restore-keys: |
-            pnpm-shared-stable-${{ matrix.os }}-${{ matrix.target }}
-
       - name: Pnpm install and check
         run: |
           pnpm i
@@ -215,6 +210,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          # CloudXP fork: override the release profile for autobuilds only.
+          # Thin LTO + codegen-units=1 dominate build time; these keep the
+          # standard `release` output dir so downstream steps are unchanged.
+          CARGO_PROFILE_RELEASE_LTO: 'false'
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: '16'
+          CARGO_PROFILE_RELEASE_OPT_LEVEL: '2'
+          CARGO_PROFILE_RELEASE_DEBUG: 'false'
           # CloudXP fork: no Apple Developer certificate secrets configured, so
           # the APPLE_* envs are intentionally NOT set — tauri skips codesign.
         with:
@@ -252,7 +254,8 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/heads/dev' }}
+          # CloudXP fork: see note on the macOS job above.
+          save-if: ${{ github.ref == 'refs/heads/custom/login' || github.ref == 'refs/heads/ops' }}
           prefix-key: 'v1-rust'
           key: 'rust-shared-stable-${{ matrix.os }}-${{ matrix.target }}'
           workspaces: |
@@ -270,14 +273,6 @@ jobs:
         with:
           node-version: '24.19.0'
           cache: 'pnpm'
-
-      - name: Pnpm Cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.pnpm-store
-          key: 'pnpm-shared-stable-${{ matrix.os }}-${{ matrix.target }}'
-          restore-keys: |
-            pnpm-shared-stable-${{ matrix.os }}-${{ matrix.target }}
 
       - name: Pnpm install and check
         run: |
@@ -308,6 +303,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          # CloudXP fork: see note on the macOS build step above.
+          CARGO_PROFILE_RELEASE_LTO: 'false'
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: '16'
+          CARGO_PROFILE_RELEASE_OPT_LEVEL: '2'
+          CARGO_PROFILE_RELEASE_DEBUG: 'false'
         with:
           tauriScript: pnpm
           args: --target ${{ matrix.target }}
