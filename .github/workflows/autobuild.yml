@@ -349,7 +349,6 @@ jobs:
   notify-telegram:
     name: Notify Telegram
     runs-on: ubuntu-latest
-    if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
     needs:
       [
         update_tag,
@@ -432,6 +431,7 @@ jobs:
           EOF
 
       - name: Send Telegram Notification
+        if: ${{ env.TELEGRAM_BOT_TOKEN != '' }}
         run: node scripts/telegram.mjs
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
