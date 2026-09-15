@@ -335,6 +335,13 @@ jobs:
       - name: Upload Release
         uses: softprops/action-gh-release@v3
         with:
+          # CloudXP fork: pass the release id we already created instead of
+          # letting the action re-resolve the release from github.ref. On a
+          # workflow_dispatch run from a branch ref the lookup fails with
+          # "Unexpected error fetching GitHub release for tag refs/heads/ops",
+          # which is why the Windows upload failed while macOS (which already
+          # passed releaseId) succeeded.
+          releaseId: ${{ needs.update_tag.outputs.release_id }}
           tag_name: ${{ env.TAG_NAME }}
           name: 'Clash Verge Rev ${{ env.TAG_CHANNEL }}'
           prerelease: true
